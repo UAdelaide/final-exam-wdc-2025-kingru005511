@@ -151,6 +151,34 @@ app.get('/api/dogs', requireAuth, async (req, res) => {
   }
 });
 
+// API endpoint to get current user information
+app.get('/api/users/me', requireAuth, (req, res) => {
+  res.json({
+    userId: req.session.userId,
+    username: req.session.username,
+    role: req.session.role
+  });
+});
+
+// API endpoint to fetch all dogs (public endpoint for homepage)
+app.get('/api/dogs/all', async (req, res) => {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    
+    // Query all dogs with owner information
+    const [rows] = await connection.execute(
+      'SELECT d.dog_id, d.name, d.size, u.username AS owner_username FROM Dogs d JOIN Users u ON d.owner_id = u.user_id'
+    );
+    
+    await connection.end();
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching all dogs:', error);
+    res.status(500).json({ message: 'Failed to fetch dogs' });
+  }
+});
+
 // Routes
 const walkRoutes = require('./routes/walkRoutes');
 const userRoutes = require('./routes/userRoutes');

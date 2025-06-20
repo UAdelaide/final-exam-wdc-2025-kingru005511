@@ -27,7 +27,7 @@
       <div class="col-md-6 mb-4" v-for="walk in walks" :key="walk.request_id">
         <div class="card">
           <div class="card-body">
-            <h5 class="card-title">Walk for {{ walk.dog_name }} ({{ walk.size }})</h5>
+            <h5 class="card-title">Walk for {{ walk.dog_name }} ({{ walk.size }} )</h5>
             <p class="card-text">
               <strong>Date:</strong> {{ new Date(walk.requested_time).toLocaleString() }}<br>
               <strong>Duration:</strong> {{ walk.duration_minutes }} minutes<br>
@@ -86,12 +86,27 @@
           }
         }
 
+        // Get current user information
+        async function getCurrentUser() {
+          try {
+            const res = await fetch('/api/users/me');
+            if (!res.ok) throw new Error('Failed to get current user');
+            return await res.json();
+          } catch (err) {
+            console.error('Error getting current user:', err);
+            throw err;
+          }
+        }
+
         async function applyToWalk(requestId) {
           try {
+            // Get current user ID dynamically
+            const currentUser = await getCurrentUser();
+            
             const res = await fetch(`/api/walks/${requestId}/apply`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ walker_id: userId.value })
+              body: JSON.stringify({ walker_id: currentUser.userId })
             });
             const result = await res.json();
 
@@ -129,6 +144,7 @@
           error,
           username,
           applyToWalk,
+          getCurrentUser,
           logout
         };
       }
