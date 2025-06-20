@@ -131,6 +131,26 @@ app.get('/api/auth/check', (req, res) => {
   });
 });
 
+// API endpoint to fetch owner's dogs
+app.get('/api/dogs', requireAuth, async (req, res) => {
+  try {
+    const connection = await mysql.createConnection(dbConfig);
+    
+    // Query dogs owned by the logged-in user
+    const [rows] = await connection.execute(
+      'SELECT dog_id, name, size FROM Dogs WHERE owner_id = ?',
+      [req.session.userId]
+    );
+    
+    await connection.end();
+    
+    res.json(rows);
+  } catch (error) {
+    console.error('Error fetching dogs:', error);
+    res.status(500).json({ message: 'Failed to fetch dogs' });
+  }
+});
+
 // Routes
 const walkRoutes = require('./routes/walkRoutes');
 const userRoutes = require('./routes/userRoutes');
