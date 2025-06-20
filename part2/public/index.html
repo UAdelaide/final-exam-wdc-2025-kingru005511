@@ -1,33 +1,123 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Dog Walking Service</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dog Walking Service Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9fafb;
+      color: #1f2937;
+      padding: 40px;
+      max-width: 500px;
+      margin: auto;
+    }
+
+    h1 {
+      color: #2563eb;
+      font-size: 2rem;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      background-color: #ffffcc;
+      border: 2px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #1d4ed8;
+    }
+
+    /* Error message styling */
+    .error-message {
+      color: #dc2626;
+      background-color: #fee2e2;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      display: none;
+    }
+  </style>
 </head>
-<body class="bg-light">
+<body>
+  <h1>Welcome to the Dog Walking Service!</h1>
 
-  <div id="app" class="container py-5">
-    <h1 class="mb-4 text-primary">{{ message }}</h1>
-    <p class="lead">Connect with trusted walkers for your beloved dog!</p>
+  <!-- Error message container -->
+  <div id="error-message" class="error-message"></div>
 
-    <a href="owner-dashboard.html" class="btn btn-outline-primary me-2">Owner Dashboard</a>
-    <a href="walker-dashboard.html" class="btn btn-outline-success">Walker Dashboard</a>
-  </div>
+  <form id="login-form" action="/login" method="POST">
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required />
+
+    <button type="submit">Log In</button>
+  </form>
 
   <script>
-    const { createApp } = Vue;
-    createApp({
-      data() {
-        return {
-          message: 'Welcome to the Dog Walking Service!'
-        };
+    // Handle form submission with AJAX for better user experience
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const errorDiv = document.getElementById('error-message');
+      
+      // Convert FormData to URLSearchParams for proper form encoding
+      const params = new URLSearchParams();
+      for (const [key, value] of formData) {
+        params.append(key, value);
       }
-    }).mount('#app');
+      
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: params
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          // Redirect based on user role
+          if (result.role === 'owner') {
+            window.location.href = '/owner-dashboard.html';
+          } else if (result.role === 'walker') {
+            window.location.href = '/walker-dashboard.html';
+          }
+        } else {
+          const error = await response.json();
+          errorDiv.textContent = error.message || 'Login failed. Please try again.';
+          errorDiv.style.display = 'block';
+        }
+      } catch (error) {
+        errorDiv.textContent = 'Network error. Please try again.';
+        errorDiv.style.display = 'block';
+      }
+    });
   </script>
-
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
